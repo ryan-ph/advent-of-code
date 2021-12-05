@@ -6,10 +6,6 @@ pub fn read_file(path: &str) -> String {
 }
 
 
-pub fn read_part1() -> String {
-    read_file("part1.txt")
-}
-
-pub fn read_part2() -> String {
-    read_file("part2.txt")
+pub fn read_input() -> String {
+    read_file("input.txt")
 }
