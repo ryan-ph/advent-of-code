@@ -21,8 +21,25 @@ fn solve_part1() -> i32 {
 }
 
 fn solve_part2() -> i32 {
+    let mut horizontal = 0;
+    let mut depth = 0;
+    let mut aim = 0;
+
     let input = read_input();
-    0
+    for line in input.lines() {
+        if let [action, unit_str] = line.split_whitespace().collect::<Vec<&str>>()[..] {
+            let unit = unit_str.parse::<i32>().unwrap();
+            if action == "forward" {
+                horizontal += unit;
+                depth += unit * aim;
+            } else if action == "down" {
+                aim += unit;
+            } else {
+                aim -= unit;
+            }
+        }
+    }
+    horizontal * depth
 }
 
 fn main() {
