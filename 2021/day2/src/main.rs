@@ -8,12 +8,10 @@ fn solve_part1() -> i32 {
     for line in input.lines() {
         if let [action, unit_str] = line.split_whitespace().collect::<Vec<&str>>()[..] {
             let unit = unit_str.parse::<i32>().unwrap();
-            if action == "forward" {
-                horizontal += unit;
-            } else if action == "down" {
-                vert += unit;
-            } else {
-                vert -= unit;
+            match action {
+                "forward" => horizontal += unit,
+                "down" => vert += unit,
+                _ => vert -= unit,
             }
         }
     }
@@ -29,13 +27,13 @@ fn solve_part2() -> i32 {
     for line in input.lines() {
         if let [action, unit_str] = line.split_whitespace().collect::<Vec<&str>>()[..] {
             let unit = unit_str.parse::<i32>().unwrap();
-            if action == "forward" {
-                horizontal += unit;
-                depth += unit * aim;
-            } else if action == "down" {
-                aim += unit;
-            } else {
-                aim -= unit;
+            match action {
+                "forward" => {
+                    horizontal += unit;
+                    depth += unit * aim;
+                },
+                "down" => aim += unit,
+                _ => aim -= unit,
             }
         }
     }
