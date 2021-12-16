@@ -28,6 +28,15 @@ fn solve_part1() -> usize {
 
 fn solve_part2() -> usize {
     let mut ret = 0;
+    for line in read_input().lines() {
+        let (pos1, pos2, ch, password) = parse_line(&line);
+        let chars = password.chars().collect::<Vec<char>>();
+        let hit1 = chars[pos1 - 1] == ch;
+        let hit2 = chars[pos2 - 1] == ch;
+        if hit1 != hit2 {
+            ret += 1
+        }
+    }
     ret
 }
 
