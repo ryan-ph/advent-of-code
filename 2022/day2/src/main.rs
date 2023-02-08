@@ -1,9 +1,8 @@
 use common::read_input;
 use std::cmp::PartialEq;
-use std::collections::HashMap;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Hand {
     Rock = 1,
     Paper = 2,
@@ -29,11 +28,52 @@ enum GameResult {
     Draw,
 }
 
-trait Beats {
-    fn beats(&self) -> Self;
+impl FromStr for GameResult {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<GameResult, Self::Err> {
+        match input {
+            "X" => Ok(GameResult::Lose),
+            "Y" => Ok(GameResult::Draw),
+            "Z" => Ok(GameResult::Win),
+            _ => Err(()),
+        }
+    }
 }
 
-impl Beats for Hand {
+trait Score {
+    fn score(&self) -> i32;
+}
+
+impl Score for Hand {
+    fn score(&self) -> i32 {
+        match *self {
+            Hand::Rock => 1,
+            Hand::Paper => 2,
+            Hand::Scissors => 3,
+        }
+    }
+}
+
+impl Score for GameResult {
+    fn score(&self) -> i32 {
+        match *self {
+            GameResult::Win => 6,
+            GameResult::Draw => 3,
+            GameResult::Lose => 0,
+        }
+    }
+}
+
+trait Playable {
+    fn beats(&self) -> Self;
+    fn loses(&self) -> Self;
+    fn draws(&self) -> Self;
+    fn play(&self, other: &Self) -> GameResult;
+    fn opponent_result(&self, result: &GameResult) -> Hand;
+}
+
+impl Playable for Hand {
     fn beats(&self) -> Self {
         match *self {
             Hand::Rock => Hand::Scissors,
@@ -41,13 +81,19 @@ impl Beats for Hand {
             Hand::Scissors => Hand::Paper,
         }
     }
-}
 
-trait Play {
-    fn play(&self, other: &Self) -> GameResult;
-}
+    fn loses(&self) -> Self {
+        match *self {
+            Hand::Rock => Hand::Paper,
+            Hand::Paper => Hand::Scissors,
+            Hand::Scissors => Hand::Rock,
+        }
+    }
 
-impl Play for Hand {
+    fn draws(&self) -> Self {
+        *self
+    }
+
     fn play(&self, other: &Self) -> GameResult {
         if self.beats() == *other {
             GameResult::Win
@@ -55,6 +101,14 @@ impl Play for Hand {
             GameResult::Lose
         } else {
             GameResult::Draw
+        }
+    }
+
+    fn opponent_result(&self, result: &GameResult) -> Hand {
+        match result {
+            GameResult::Win => self.loses(),
+            GameResult::Draw => *self,
+            GameResult::Lose => self.beats(),
         }
     }
 }
@@ -68,17 +122,9 @@ fn solve_part1() -> i32 {
                 .map(|raw| Hand::from_str(raw).expect(&format!("could not parse hand: {}", raw)))
                 .collect();
             if turn.len() == 2 {
-                let hand_score = match turn[1] {
-                    Hand::Rock => 1,
-                    Hand::Paper => 2,
-                    Hand::Scissors => 3,
-                };
-                let result_score = match turn[1].play(&turn[0]) {
-                    GameResult::Win => 6,
-                    GameResult::Lose => 0,
-                    GameResult::Draw => 3,
-                };
-                hand_score + result_score
+                let op = &turn[0];
+                let me = &turn[1];
+                me.score() + me.play(op).score()
             } else {
                 panic!("malformed turn: {:?}", turn);
             }
@@ -87,8 +133,22 @@ fn solve_part1() -> i32 {
 }
 
 fn solve_part2() -> i32 {
-    let mut ret = 0;
-    ret
+    read_input()
+        .lines()
+        .map(|line| {
+            let turn = line.split(' ').collect::<Vec<_>>();
+            if turn.len() == 2 {
+                let op =
+                    Hand::from_str(turn[0]).expect(&format!("could not parse hand: {}", turn[0]));
+                let result = GameResult::from_str(turn[1])
+                    .expect(&format!("could not parse result: {}", turn[1]));
+                let me = op.opponent_result(&result);
+                me.score() + result.score()
+            } else {
+                panic!("malformed turn; {:?}", turn);
+            }
+        })
+        .sum()
 }
 
 fn main() {
